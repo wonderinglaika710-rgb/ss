@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOUNDSHEEP 配信データ確認</title>
+<style>
+  :root { color-scheme: light dark; --line: #8884; }
+  body {
+    font-family: system-ui, "Segoe UI", "Yu Gothic UI", sans-serif;
+    max-width: 940px; margin: 0 auto; padding: 24px 16px 80px; line-height: 1.7;
+  }
+  h1 { font-size: 1.35rem; margin-bottom: .2em; }
+  h2 { font-size: 1.05rem; margin-top: 2.4em; border-bottom: 1px solid var(--line); padding-bottom: .3em; }
+  .lead { opacity: .75; font-size: .9rem; margin-top: 0; }
+  .ok { color: #1a7f37; }
+  .ng { color: #d1242f; font-weight: 700; }
+  ul.checks { padding-left: 1.2em; }
+  ul.checks li { margin: .2em 0; }
+  .acts { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+  .act { border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+  .act img { width: 100%; height: auto; border-radius: 4px; background: #8882; display: block; }
+  .act dl { margin: 12px 0 0; font-size: .88rem; }
+  .act dt { opacity: .6; font-size: .78rem; margin-top: .6em; }
+  .act dd { margin: 0; word-break: break-all; }
+  .slot { font-variant-numeric: tabular-nums; opacity: .6; font-size: .8rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .85rem; }
+  th, td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; }
+  th { opacity: .7; font-weight: 600; }
+  td.thumb { width: 56px; }
+  td.thumb img { width: 48px; height: auto; display: block; background: #8882; }
+  code { background: #8882; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+</style>
+</head>
+<body>
+
+<h1>SOUNDSHEEP 配信データ確認</h1>
+<p class="lead">ワールドが読みに行くファイルを、そのまま表示している。live.json を書き換えたらこのページを開いて、下の検査がすべて緑になっていることを確認する。</p>
+
+<h2>検査</h2>
+<ul class="checks" id="checks"><li>読み込み中…</li></ul>
+
+<h2>今回の出演</h2>
+<div class="acts" id="acts"></div>
+
+<h2>ポスター台帳</h2>
+<table id="roster"><tbody></tbody></table>
+
+<script>
+// grp_ + UUID。VRChat のグループ ID はこの形式でなければ Store.OpenGroupPage が失敗する。
+const GROUP_ID_RE = /^grp_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+// VRCJson は文字列中の中括弧・角括弧で誤パースするバグがあるため、名前に使わせない。
+const FORBIDDEN_RE = /[\[\]{}]/;
+
+const checks = [];
+function check(ok, label) { checks.push({ ok, label }); }
+
+function renderChecks() {
+  document.getElementById("checks").innerHTML = checks.map(c =>
+    '<li class="' + (c.ok ? "ok" : "ng") + '">' + (c.ok ? "OK" : "NG") + " — " + c.label + "</li>"
+  ).join("");
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+function slotPath(no) { return "posters/" + String(no).padStart(3, "0") + ".png"; }
+
+async function loadJson(path) {
+  // 確認用ページなので CDN キャッシュを避けて必ず最新を読む。
+  const res = await fetch(path + "?t=" + Date.now());
+  if (!res.ok) throw new Error(path + " が取得できない (HTTP " + res.status + ")");
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    throw new Error(path + " の JSON が壊れている — " + e.message);
+  }
+}
+
+// 画像が実際に配信されているかを HEAD で確かめる。
+async function exists(path) {
+  try {
+    const res = await fetch(path, { method: "HEAD" });
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function main() {
+  let live;
+  try {
+    live = await loadJson("live.json");
+    check(true, "live.json を読み込めた");
+  } catch (e) {
+    check(false, e.message);
+    renderChecks();
+    return;
+  }
+
+  const acts = Array.isArray(live.acts) ? live.acts : [];
+  check(acts.length >= 1 && acts.length <= 3, "出演者が 1〜3 人 (現在 " + acts.length + " 人)");
+
+  const html = [];
+  for (let i = 0; i < acts.length; i++) {
+    const a = acts[i], n = i + 1;
+    const no = Number(a.poster);
+
+    check(Number.isInteger(no) && no >= 1 && no <= 100,
+          n + "人目: poster が 1〜100 の整数 (" + esc(a.poster) + ")");
+    check(GROUP_ID_RE.test(String(a.groupId || "")),
+          n + "人目: groupId が grp_ 形式 (" + esc(a.groupId) + ")");
+    check(!FORBIDDEN_RE.test(String(a.name || "") + String(a.group || "")),
+          n + "人目: 名前に半角の [ ] { } を含まない");
+
+    if (Number.isInteger(no)) {
+      const path = slotPath(no);
+      check(await exists(path), n + "人目: " + path + " が存在する");
+    }
+
+    html.push(
+      '<div class="act">' +
+      '<img src="' + esc(slotPath(no)) + '" alt="">' +
+      '<dl>' +
+      '<dt>ポスター</dt><dd class="slot">' + esc(a.poster) + " — " + esc(slotPath(no)) + '</dd>' +
+      '<dt>演者名</dt><dd>' + esc(a.name) + '</dd>' +
+      '<dt>グループ名</dt><dd>' + esc(a.group) + '</dd>' +
+      '<dt>グループ ID</dt><dd><code>' + esc(a.groupId) + '</code></dd>' +
+      '</dl></div>'
+    );
+  }
+  document.getElementById("acts").innerHTML = html.join("");
+
+  try {
+    const roster = await loadJson("roster.json");
+    const rows = (roster.posters || []).map(p =>
+      "<tr>" +
+      // 台帳のサムネイルは 48px 表示だが実体は 2MB 級ある。
+      // lazy にして、画面に入るまで転送しないようにする。
+      '<td class="thumb"><img loading="lazy" src="' + esc(p.file) + '" alt=""></td>' +
+      "<td>" + String(p.no).padStart(3, "0") + "</td>" +
+      "<td>" + esc(p.name || "") + "</td>" +
+      "<td>" + esc(p.group || "") + "</td>" +
+      "<td><code>" + esc(p.groupId || "") + "</code></td>" +
+      "</tr>"
+    );
+    document.querySelector("#roster tbody").innerHTML =
+      "<tr><th></th><th>番号</th><th>演者名</th><th>グループ名</th><th>グループ ID</th></tr>" + rows.join("");
+    check(true, "roster.json を読み込めた");
+  } catch (e) {
+    check(false, e.message);
+  }
+
+  renderChecks();
+}
+
+main();
+</script>
+
+</body>
+</html>
