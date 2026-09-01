@@ -12,7 +12,7 @@
     { "no": 9, "file": "posters/009.png", "source": "mau.png", "name": "mau", "group": "", "groupId": "" },
     { "no": 10, "file": "posters/010.png", "source": "kimitoto.png", "name": "kimitoto", "group": "", "groupId": "" },
     { "no": 11, "file": "posters/011.png", "source": "furuoto.png", "name": "furuoto", "group": "", "groupId": "" },
-    { "no": 12, "file": "posters/012.png", "source": "byesongs.png", "name": "byesongs", "group": "", "groupId": "" },
+    { "no": 12, "file": "posters/012.png", "source": "byesongs.png", "name": "byesongs", "group": "皆殺しの夜", "groupId": "grp_ac472a9d-2b0c-4978-86ba-5e699a605b40" },
     { "no": 13, "file": "posters/013.png", "source": "kaito8.png", "name": "kaito8", "group": "", "groupId": "" },
     { "no": 14, "file": "posters/014.png", "source": "leviathan.png", "name": "leviathan", "group": "", "groupId": "" }
   ]
