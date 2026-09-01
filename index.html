@@ -80,14 +80,15 @@ async function loadJson(path) {
   }
 }
 
-// 画像が実際に配信されているかを HEAD で確かめる。
-async function exists(path) {
-  try {
-    const res = await fetch(path, { method: "HEAD" });
-    return res.ok;
-  } catch (e) {
-    return false;
-  }
+// 画像を実際に読み込んで、存在と縦横比を確かめる。
+// 比率が 1.50 から外れているとワールドでポスターが縦横に歪む。
+function probeImage(path) {
+  return new Promise(resolve => {
+    const im = new Image();
+    im.onload = () => resolve({ ok: true, w: im.naturalWidth, h: im.naturalHeight });
+    im.onerror = () => resolve({ ok: false });
+    im.src = path + "?t=" + Date.now();
+  });
 }
 
 async function main() {
@@ -118,7 +119,15 @@ async function main() {
 
     if (Number.isInteger(no)) {
       const path = slotPath(no);
-      check(await exists(path), n + "人目: " + path + " が存在する");
+      const info = await probeImage(path);
+      check(info.ok, n + "人目: " + path + " が存在する");
+      if (info.ok) {
+        const ratio = info.h / info.w;
+        check(Math.abs(ratio - 1.50) < 0.01,
+              n + "人目: 縦横比が 1.50 (" + info.w + "x" + info.h + " = " + ratio.toFixed(3) + ")");
+        check(info.w <= 1365 && info.h <= 2048,
+              n + "人目: 2048 以内 (" + info.w + "x" + info.h + ")");
+      }
     }
 
     html.push(
