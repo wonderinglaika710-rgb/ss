@@ -1,16 +1,29 @@
 # SOUNDSHEEP ワールド配信データ
 
-VRChat ワールドが毎月読みに行くテキストとポスター画像を置くリポジトリ。
+VRChat ワールドが読みに行くテキストとポスター画像を置くリポジトリ。
 ここを書き換えるとワールドに反映される。**ワールドの再ビルドは要らない。**
+
+## 額縁は2種類ある
+
+| | 場所 | ポスター画像 | 演者名・グループID |
+|---|---|---|---|
+| **今月の枠** | ドーム側入口を入って右の大枠（1つ） | **`live.json` で毎月差し替え** | `live.json` |
+| **固定枠** | 展示室の壁（14枚） | ワールドに焼き込み済み。変えるには再ビルドが要る | **`roster.json` で差し替え** |
+
+分けている理由は取得の速さである。VRChat は**画像を5秒に1件しか落とせない**（ワールド全体の制限で、
+並列にはできない）。14枚を毎回落とすと70秒かかる。ポスターを焼き込んでおけば、
+落とすのはテキスト2本と今月の1枚だけで済む。
+
+**固定枠でも「押すとグループが開く」機能は動く。** そちらは画像ではなく
+演者名とグループIDだけを `roster.json` から受け取っているため、待ち時間がない。
 
 ## 公開 URL
 
-GitHub Pages を有効にすると、次の URL で配信される。
-
 | 内容 | URL |
 |---|---|
-| テキスト | `https://wonderinglaika710-rgb.github.io/ss/live.json` |
-| ポスター | `https://wonderinglaika710-rgb.github.io/ss/posters/001.png` 〜 `100.png` |
+| 今月の出演 | `https://wonderinglaika710-rgb.github.io/ss/live.json` |
+| 固定枠の台帳 | `https://wonderinglaika710-rgb.github.io/ss/roster.json` |
+| **今月のポスター** | `https://wonderinglaika710-rgb.github.io/ss/posters/current.png` |
 | 確認ページ | `https://wonderinglaika710-rgb.github.io/ss/` |
 
 **この URL は Unity 側に焼き込まれている。変えてはいけない。**
@@ -21,13 +34,18 @@ GitHub Pages を有効にすると、次の URL で配信される。
 
 Settings → Pages → Build and deployment で
 Source を `Deploy from a branch`、Branch を `main` / `(root)` にして Save。
-数分で公開される。
 
 ## 毎月やること
 
-1. `live.json` を開いて、鉛筆アイコンから3人分を書き換える
-2. Commit する
-3. 確認ページ（上の表の3行目）を開いて、検査がすべて緑になっているか見る
+1. 今月のポスターを `posters/current.png` として作り、上書きする
+
+   ```bash
+   python tools/prepare_poster.py "今月のポスター.png" current
+   ```
+
+2. `live.json` を開いて、鉛筆アイコンから今月の出演に書き換える
+3. Commit する
+4. 確認ページを開いて、検査がすべて緑になっているか見る
 
 反映まで CDN のキャッシュで数分から十数分かかることがある。
 
@@ -35,23 +53,44 @@ Source を `Deploy from a branch`、Branch を `main` / `(root)` にして Save�
 
 ```json
 {
-  "updated": "2026-09-01",
+  "updated": "2026-09-02",
   "acts": [
     {
-      "poster": 1,
-      "name": "演者名",
-      "group": "グループ名",
-      "groupId": "grp_00000000-0000-0000-0000-000000000000"
+      "name": "byesongs",
+      "group": "皆殺しの夜",
+      "groupId": "grp_ac472a9d-2b0c-4978-86ba-5e699a605b40"
     }
   ]
 }
 ```
 
-- `poster` … `roster.json` の番号。この番号が `posters/001.png` に対応する
+- **`acts` は先頭の1件だけが使われる。** 今月の枠は1つしかない
+- **ポスター画像はここでは指定しない。** ワールドは `posters/current.png` を固定で読む
 - `groupId` … VRChat のグループページ URL の `grp_` 以降をそのまま貼る。
   `https://vrchat.com/home/group/grp_xxxx…` の `grp_xxxx…` の部分。
   短縮コード（`EXAMPL.9920` の形式）は使えない
-- 出演者が2人の月は、`acts` の要素を2つにする。ワールドが件数を見て枠を出し分ける
+- **`acts` を空にすると、その月は額縁ごと消える。** 壁に影を焼いていないので痕跡は残らない
+
+### roster.json の書き方
+
+固定枠14枚の演者名とグループIDはここで決まる。**ワールドが読む。**
+
+```json
+{
+  "posters": [
+    { "no": 12, "frame": 24, "file": "posters/012.png",
+      "source": "byesongs.png", "name": "byesongs",
+      "group": "皆殺しの夜", "groupId": "grp_ac472a9d-…" }
+  ]
+}
+```
+
+- `no` … ポスター番号。`posters/NNN.png` に対応する
+- **`frame` … 額縁番号（1〜26）。この額縁の名札とグループIDになる**
+- `frame` が 0 または未記入の項目は、どの額縁にも出ていないポスターとして読み飛ばされる
+- `groupId` が空の枠は、押しても何も起きない状態になる
+
+`name` と `group` は、額縁を見たときに出るラベル（`演者名 / グループ名`）になる。
 
 ## ポスターを追加するとき
 
@@ -72,9 +111,13 @@ python tools/prepare_poster.py "元の画像.png" 15
 **比率が 1.50 でない画像を直接置くと、ワールドで縦横が歪む。**
 解像度そのものは画像ごとに違ってよい（上限 1365x2048）。比率だけが揃っていればよい。
 
-**番号は 100 までワールド側に用意してある。** 101 番以降を使うには
-Unity 側で枠を増やしてワールドを再ビルドする必要がある。
-また、一度振った番号は変更しない。過去の記録と食い違う。
+**固定枠のポスター画像を差し替えても、ワールドには反映されない。**
+あちらは焼き込みなので、Unity 側でテクスチャを入れ替えて再ビルドする必要がある。
+`posters/` の画像は今月の枠と、台帳としての記録に使う。
+
+`posters/NNN.png` の番号付きファイルは**台帳としての記録**である。
+ワールドが読むのは `posters/current.png` だけなので、番号を増やしても
+ワールド側の変更は要らない。一度振った番号は変更しない。過去の記録と食い違う。
 
 ## 壊さないための決まり
 
@@ -93,10 +136,11 @@ Unity 側で枠を増やしてワールドを再ビルドする必要がある�
 .
 ├── .nojekyll                  Jekyll のビルドを止める
 ├── index.html                 確認ページ。JSON の壊れと画像の欠けを検査する
-├── live.json                  ワールドが読む。毎月書き換えるのはこれだけ
-├── roster.json                番号台帳。ワールドは読まない。人が見失わないための記録
+├── live.json                  今月の枠。ワールドが読む
+├── roster.json                固定枠の名札とグループID。ワールドが読む
 ├── posters/
-│   ├── 001.png 〜             ポスター。番号が live.json の poster と対応する
+│   ├── current.png           今月の枠。ワールドが読む唯一の画像。毎月上書きする
+│   ├── 001.png 〜             台帳としての記録。ワールドは読まない
 └── tools/
-    └── prepare_poster.py      画像を 2048 以下に整えて posters/ へ入れる
+    └── prepare_poster.py      画像を比率1.50・2048以下に整えて posters/ へ入れる
 ```

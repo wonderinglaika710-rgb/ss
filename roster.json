@@ -1,19 +1,131 @@
 {
-  "_note": "ポスター番号の台帳。ワールドはこのファイルを読まない。人が対応を見失わないための記録。一度振った番号は変更しないこと。",
+  "_note": "ポスター番号(no)と額縁番号(frame)の台帳。frame はワールドが読み、その額縁の演者名とグループIDになる。frame=0 はどの額縁にも出していないポスター。一度振った no は変更しない。",
   "posters": [
-    { "no": 1, "file": "posters/001.png", "source": "yuu.png", "name": "yuu", "group": "", "groupId": "" },
-    { "no": 2, "file": "posters/002.png", "source": "tukumi.png", "name": "tukumi", "group": "", "groupId": "" },
-    { "no": 3, "file": "posters/003.png", "source": "SS.png", "name": "SS", "group": "", "groupId": "" },
-    { "no": 4, "file": "posters/004.png", "source": "rucha.png", "name": "rucha", "group": "", "groupId": "" },
-    { "no": 5, "file": "posters/005.png", "source": "yuruto.png", "name": "yuruto", "group": "", "groupId": "" },
-    { "no": 6, "file": "posters/006.png", "source": "taki.png", "name": "taki", "group": "", "groupId": "" },
-    { "no": 7, "file": "posters/007.png", "source": "sbbb.png", "name": "sbbb", "group": "", "groupId": "" },
-    { "no": 8, "file": "posters/008.png", "source": "nickel.png", "name": "nickel", "group": "", "groupId": "" },
-    { "no": 9, "file": "posters/009.png", "source": "mau.png", "name": "mau", "group": "", "groupId": "" },
-    { "no": 10, "file": "posters/010.png", "source": "kimitoto.png", "name": "kimitoto", "group": "", "groupId": "" },
-    { "no": 11, "file": "posters/011.png", "source": "furuoto.png", "name": "furuoto", "group": "", "groupId": "" },
-    { "no": 12, "file": "posters/012.png", "source": "byesongs.png", "name": "byesongs", "group": "皆殺しの夜", "groupId": "grp_ac472a9d-2b0c-4978-86ba-5e699a605b40" },
-    { "no": 13, "file": "posters/013.png", "source": "kaito8.png", "name": "kaito8", "group": "", "groupId": "" },
-    { "no": 14, "file": "posters/014.png", "source": "leviathan.png", "name": "leviathan", "group": "", "groupId": "" }
+    {
+      "no": 1,
+      "frame": 5,
+      "file": "posters/001.png",
+      "source": "yuu.png",
+      "name": "yuu",
+      "group": "",
+      "groupId": ""
+    },
+    {
+      "no": 2,
+      "frame": 6,
+      "file": "posters/002.png",
+      "source": "tukumi.png",
+      "name": "tukumi",
+      "group": "",
+      "groupId": ""
+    },
+    {
+      "no": 3,
+      "frame": 7,
+      "file": "posters/003.png",
+      "source": "SS.png",
+      "name": "SS",
+      "group": "",
+      "groupId": ""
+    },
+    {
+      "no": 4,
+      "frame": 8,
+      "file": "posters/004.png",
+      "source": "rucha.png",
+      "name": "rucha",
+      "group": "",
+      "groupId": ""
+    },
+    {
+      "no": 5,
+      "frame": 13,
+      "file": "posters/005.png",
+      "source": "yuruto.png",
+      "name": "yuruto",
+      "group": "",
+      "groupId": ""
+    },
+    {
+      "no": 6,
+      "frame": 14,
+      "file": "posters/006.png",
+      "source": "taki.png",
+      "name": "taki",
+      "group": "",
+      "groupId": ""
+    },
+    {
+      "no": 7,
+      "frame": 15,
+      "file": "posters/007.png",
+      "source": "sbbb.png",
+      "name": "sbbb",
+      "group": "",
+      "groupId": ""
+    },
+    {
+      "no": 8,
+      "frame": 16,
+      "file": "posters/008.png",
+      "source": "nickel.png",
+      "name": "nickel",
+      "group": "",
+      "groupId": ""
+    },
+    {
+      "no": 9,
+      "frame": 21,
+      "file": "posters/009.png",
+      "source": "mau.png",
+      "name": "mau",
+      "group": "",
+      "groupId": ""
+    },
+    {
+      "no": 10,
+      "frame": 22,
+      "file": "posters/010.png",
+      "source": "kimitoto.png",
+      "name": "kimitoto",
+      "group": "",
+      "groupId": ""
+    },
+    {
+      "no": 11,
+      "frame": 23,
+      "file": "posters/011.png",
+      "source": "furuoto.png",
+      "name": "furuoto",
+      "group": "",
+      "groupId": ""
+    },
+    {
+      "no": 12,
+      "frame": 24,
+      "file": "posters/012.png",
+      "source": "byesongs.png",
+      "name": "byesongs",
+      "group": "皆殺しの夜",
+      "groupId": "grp_ac472a9d-2b0c-4978-86ba-5e699a605b40"
+    },
+    {
+      "no": 13,
+      "frame": 25,
+      "file": "posters/013.png",
+      "source": "kaito8.png",
+      "name": "kaito8",
+      "group": "",
+      "groupId": ""
+    },
+    {
+      "no": 14,
+      "frame": 26,
+      "file": "posters/014.png",
+      "source": "leviathan.png",
+      "name": "leviathan",
+      "group": "",
+      "groupId": ""
+    }
   ]
 }

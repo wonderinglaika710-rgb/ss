@@ -46,14 +46,25 @@ POSTERS_DIR = os.path.join(os.path.dirname(HERE), "posters")
 
 
 def prepare(src_path, slot):
-    """1 枚を posters/NNN.png へ変換配置する。"""
+    """1 枚を posters/NNN.png、または posters/current.png へ変換配置する。
+
+    slot に "current" を渡すと今月の枠のポスターになる。ワールドはこの固定 URL
+    だけを見ているので、毎月このファイルを上書きすれば差し替わる。
+    数字を渡した場合は台帳用の番号付きファイルになる。
+    """
     if not os.path.isfile(src_path):
         raise SystemExit("画像が見つからない: %s" % src_path)
-    if not 1 <= slot <= MAX_SLOT:
-        raise SystemExit("番号は 1〜%d の範囲で指定する: %d" % (MAX_SLOT, slot))
 
     os.makedirs(POSTERS_DIR, exist_ok=True)
-    dst_path = os.path.join(POSTERS_DIR, "%03d.png" % slot)
+    if str(slot).lower() == "current":
+        label = "current"
+        dst_path = os.path.join(POSTERS_DIR, "current.png")
+    else:
+        slot = int(slot)
+        if not 1 <= slot <= MAX_SLOT:
+            raise SystemExit("番号は 1〜%d の範囲で指定する: %d" % (MAX_SLOT, slot))
+        label = "%03d" % slot
+        dst_path = os.path.join(POSTERS_DIR, "%03d.png" % slot)
 
     with Image.open(src_path) as im:
         width, height = im.size
@@ -97,8 +108,8 @@ def prepare(src_path, slot):
     src_mb = os.path.getsize(src_path) / 1024 / 1024
     dst_mb = os.path.getsize(dst_path) / 1024 / 1024
     print(
-        "%03d.png  %dx%d -> 画像%dx%d / 枠%dx%d(%.3f)  %s  %.1fMB -> %.1fMB"
-        % (slot, width, height, new_size[0], new_size[1],
+        "%s.png  %dx%d -> 画像%dx%d / 枠%dx%d(%.3f)  %s  %.1fMB -> %.1fMB"
+        % (label, width, height, new_size[0], new_size[1],
            canvas_w, canvas_h, canvas_h / canvas_w, margin, src_mb, dst_mb)
     )
     return dst_path
@@ -108,7 +119,7 @@ def main():
     if len(sys.argv) != 3:
         print(__doc__)
         raise SystemExit(1)
-    prepare(sys.argv[1], int(sys.argv[2]))
+    prepare(sys.argv[1], sys.argv[2])
 
 
 if __name__ == "__main__":
